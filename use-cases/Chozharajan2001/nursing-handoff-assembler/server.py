@@ -30,13 +30,23 @@ from clinical_pipeline import (
 from packet_builder import ClinicalPDFPacketBuilder
 from superdocs_client import SuperDocsAPIClient
 
+from contextlib import asynccontextmanager
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("superdocs.clinical_server")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _ACTIVE_ASSEMBLER
+    _ACTIVE_ASSEMBLER = init_default_assembler()
+    logger.info("Clinical Nursing Handoff Server initialized for patient MRN %s", _ACTIVE_ASSEMBLER.demographics.mrn)
+    yield
 
 app = FastAPI(
     title="SuperDocs Clinical Nursing Handoff & Transfer Server (Band S2)",
     description="Safety-gated clinical document assembly workflow with conservative medication reconciliation.",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -145,13 +155,6 @@ class GateConfirmationRequest(BaseModel):
     nurse_id: str = Field(default="RN-4029")
     second_nurse_name: Optional[str] = Field(default="RN Mark Taylor")
     second_nurse_id: Optional[str] = Field(default="RN-5104")
-
-
-@app.on_event("startup")
-def startup():
-    global _ACTIVE_ASSEMBLER
-    _ACTIVE_ASSEMBLER = init_default_assembler()
-    logger.info("Clinical Nursing Handoff Server initialized for patient MRN %s", _ACTIVE_ASSEMBLER.demographics.mrn)
 
 
 @app.get("/healthz")
@@ -298,5 +301,28 @@ def export_docx_dossier():
 
 
 if __name__ == "__main__":
+    import socket
+    import sys
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8001)
+    import urllib.request
+
+    def is_port_in_use(port: int) -> bool:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            return s.connect_ex(("127.0.0.1", port)) == 0
+
+    target_port = 8001
+    if is_port_in_use(target_port):
+        # Check if it's our healthy clinical server
+        try:
+            req = urllib.request.Request(f"http://127.0.0.1:{target_port}/healthz")
+            with urllib.request.urlopen(req, timeout=1) as resp:
+                if resp.status == 200:
+                    print("\n===========================================================================")
+                    print(f"✅ SERVER IS ALREADY RUNNING & HEALTHY AT: http://127.0.0.1:{target_port}/dashboard")
+                    print("===========================================================================\n")
+                    sys.exit(0)
+        except Exception:
+            target_port = 8002
+
+    print(f"\n[INFO] Starting Clinical Server on http://127.0.0.1:{target_port} ...")
+    uvicorn.run(app, host="127.0.0.1", port=target_port)
