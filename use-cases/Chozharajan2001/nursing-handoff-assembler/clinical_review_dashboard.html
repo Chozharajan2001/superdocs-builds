@@ -278,7 +278,9 @@
 
     <!-- Interactive Script -->
     <script>
-        function updateGateState() {
+        const API_BASE = window.location.origin;
+
+        async function updateGateState() {
             const g1 = document.getElementById('gateAllergies').checked;
             const g2 = document.getElementById('gateCodeStatus').checked;
             const g3 = document.getElementById('gateHighRiskMeds').checked;
@@ -287,6 +289,15 @@
 
             const confirmedCount = [g1, g2, g3].filter(Boolean).length;
             const pendingCount = 3 - confirmedCount;
+
+            // Sync with backend API if server is live
+            try {
+                if (g1) await fetch(`${API_BASE}/api/clinical/confirm-gate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gate_type: 'allergies' }) });
+                if (g2) await fetch(`${API_BASE}/api/clinical/confirm-gate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gate_type: 'code_status' }) });
+                if (g3) await fetch(`${API_BASE}/api/clinical/confirm-gate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gate_type: 'high_risk_meds' }) });
+            } catch (e) {
+                console.log('Running in local standalone mode without backend server.');
+            }
 
             if (pendingCount === 0) {
                 badge.className = "bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded font-bold";
@@ -306,7 +317,7 @@
 
         function exportPacket() {
             document.getElementById('exportSuccessAlert').classList.remove('hidden');
-            alert('✓ SUCCESS: All 3 safety gates verified!\n\nStandardized 10-Page Clinical Transfer Packet Compiled:\n- File: transfer_packet_patient-883921.pdf\n- Word Dossier: superdocs_handoff_883921.docx\n- SHA-256 Digest: c6d10ddaefb073cbb6d224c359294ccde2e389fae699e411c213ce139eafed63');
+            window.open(`${API_BASE}/api/clinical/export/pdf`, '_blank');
         }
     </script>
 </body>
