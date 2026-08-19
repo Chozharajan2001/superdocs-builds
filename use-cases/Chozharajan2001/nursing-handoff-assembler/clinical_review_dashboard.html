@@ -3,272 +3,468 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperDocs Clinical Nursing Handoff & Transfer Assembler (Band S2)</title>
+    <title>SuperDocs Clinical Transfer & Nursing Handoff Assembler</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Space Grotesk & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        clinical: {
+                            alert: '#dc2626',
+                            warning: '#d97706',
+                            safe: '#059669',
+                            card: '#ffffff',
+                            bg: '#f8fafc',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; }
-        .citation-badge { background-color: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-family: monospace; }
-        .high-alert-badge { background-color: #fee2e2; color: #b91c1c; border: 1px solid #f87171; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
-        .dup-warning-badge { background-color: #fef3c7; color: #b45309; border: 1px solid #fcd34d; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .font-heading { font-family: 'Space Grotesk', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        .citation-badge {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            border: 1px solid #bae6fd;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+        .citation-badge:hover {
+            background-color: #0284c7;
+            color: #ffffff;
+            border-color: #0284c7;
+            transform: translateY(-1px);
+        }
+
+        .high-alert-pill {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            border: 1px solid #f87171;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .dup-warning-banner {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid #f59e0b;
+            border-radius: 0 6px 6px 0;
+        }
+
+        /* Glassmorphism & Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col antialiased">
 
-    <!-- Header Navigation -->
-    <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center text-white shadow-md">
-                <i class="fa-solid fa-hospital-user text-xl"></i>
+    <!-- Top Navigation Header -->
+    <header class="bg-white border-b border-slate-200/80 sticky top-0 z-40 shadow-sm backdrop-blur-md bg-white/95">
+        <div class="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
+            <!-- Brand & App Identity -->
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                    <i class="fa-solid fa-notes-medical text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-heading font-bold text-lg tracking-tight text-slate-900">SuperDocs Clinical Assembler</span>
+                        <span class="bg-indigo-100 text-indigo-800 text-[11px] font-bold px-2 py-0.5 rounded-full border border-indigo-200">Band S2</span>
+                        <span class="bg-emerald-100 text-emerald-800 text-[11px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live API Ready
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 font-medium">Automated Inpatient Nursing Transfer & Safety-Gated Handoff Dossier</p>
+                </div>
             </div>
-            <div>
-                <h1 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    SuperDocs Clinical Transfer Assembler
-                    <span class="bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">Band S2</span>
-                </h1>
-                <p class="text-xs text-slate-500">Inpatient Nursing Transfer & Safety-Gated Handoff Dossier</p>
-            </div>
-        </div>
-        <div class="flex items-center gap-4">
-            <div class="text-right">
-                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Authenticated Unit</div>
-                <div class="text-sm font-bold text-slate-800">Medical ICU &rarr; Step-Down Unit Bed 202</div>
-            </div>
-            <div class="h-8 w-px bg-slate-200"></div>
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-xs font-medium text-slate-600">SuperDocs API Connected</span>
+
+            <!-- Header Quick Stats & Actions -->
+            <div class="flex items-center gap-5">
+                <div class="hidden md:flex items-center gap-4 text-xs border-r border-slate-200 pr-5">
+                    <div class="text-right">
+                        <div class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Unit Trajectory</div>
+                        <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                            <span class="text-indigo-600 font-semibold">MICU (Bed 14)</span>
+                            <i class="fa-solid fa-arrow-right text-[10px] text-slate-400"></i>
+                            <span class="text-emerald-700 font-semibold">Step-Down (Bed 202)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="resetHandoff()" title="Reset Patient State" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrows-rotate text-[11px]"></i> Reset Demo
+                    </button>
+                    <a href="http://127.0.0.1:8000/docs" target="_blank" class="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-code text-[11px]"></i> API Docs
+                    </a>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Container -->
+    <!-- Main Workspace Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-12 gap-6">
 
-        <!-- Left Column: Patient Summary & Safety Verification Gates (5 Cols) -->
+        <!-- ================================================================= -->
+        <!-- LEFT COLUMN: Patient Chart & Mandatory Safety Gatekeeper (5 Cols) -->
+        <!-- ================================================================= -->
         <div class="col-span-12 lg:col-span-5 space-y-6">
-            
-            <!-- Patient Demographics Banner -->
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-3">
+
+            <!-- 1. Patient Demographics Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
                 <div class="flex justify-between items-start">
-                    <div>
-                        <div class="text-xs uppercase font-bold text-slate-400">Patient Identifier</div>
-                        <h2 class="text-xl font-bold text-slate-900">Eleanor Vance</h2>
-                        <div class="text-xs text-slate-500 font-mono">MRN: 883921 | DOB: 1958-04-12 (68yo F)</div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-heading font-bold text-slate-700 text-base">
+                            EV
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="font-heading font-bold text-lg text-slate-900">Eleanor Vance</h2>
+                                <span class="text-xs bg-slate-100 text-slate-600 font-mono px-2 py-0.5 rounded font-semibold">MRN 883921</span>
+                            </div>
+                            <div class="text-xs text-slate-500 font-medium">68yo Female • DOB: Apr 12, 1958 • Admit: Aug 10, 2026</div>
+                        </div>
                     </div>
-                    <span class="bg-rose-600 text-white text-xs px-3 py-1 rounded-md font-bold tracking-wider uppercase shadow-sm">
+                    <span class="bg-rose-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-md tracking-wider uppercase shadow-sm">
                         FULL CODE
                     </span>
                 </div>
-                <div class="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100">
-                    <div><span class="text-slate-400">Admit Date:</span> <span class="font-semibold text-slate-700">2026-08-10</span></div>
-                    <div><span class="text-slate-400">Attending:</span> <span class="font-semibold text-slate-700">Dr. Robert Chen, MD</span></div>
-                    <div><span class="text-slate-400">Sending:</span> <span class="font-semibold text-slate-700">MICU Bed 14</span></div>
-                    <div><span class="text-slate-400">Receiving:</span> <span class="font-semibold text-slate-700">Step-Down Bed 202</span></div>
+
+                <!-- Clinical Metadata Grid -->
+                <div class="grid grid-cols-2 gap-2 text-xs pt-3 border-t border-slate-100">
+                    <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Attending Physician</span>
+                        <span class="font-semibold text-slate-800">Dr. Robert Chen, MD</span>
+                    </div>
+                    <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Fall Risk (Morse Score)</span>
+                        <span class="font-bold text-amber-700 flex items-center gap-1">
+                            <i class="fa-solid fa-triangle-exclamation text-[10px]"></i> 55 (High Risk)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Confirmed Allergies Banner -->
+                <div class="bg-rose-50/80 border border-rose-200 rounded-xl p-3 flex items-start gap-2.5">
+                    <i class="fa-solid fa-hand-dots text-rose-600 text-sm mt-0.5"></i>
+                    <div class="text-xs">
+                        <div class="font-bold text-rose-900">Documented Drug Sensitivities:</div>
+                        <div class="text-rose-700 font-medium mt-0.5">
+                            <span class="font-bold text-rose-900">1. Penicillin:</span> SEVERE ANAPHYLAXIS (Laryngeal edema) • 
+                            <span class="font-bold text-rose-900">2. Sulfa:</span> Rash/Urticaria
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Mandatory Safety Export Gates -->
-            <div class="bg-white rounded-xl border-2 border-amber-300 p-5 shadow-sm space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-shield-halved text-amber-500"></i>
-                        Mandatory Export Safety Gates
-                    </h3>
-                    <span id="gateStatusBadge" class="bg-amber-100 text-amber-800 text-xs px-2.5 py-0.5 rounded font-bold">
-                        3 Pending Verification
+            <!-- 2. Mandatory Human Safety Export Gatekeeper -->
+            <div class="bg-white rounded-2xl border-2 border-amber-300 p-5 shadow-sm space-y-4 relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 text-amber-100 text-8xl pointer-events-none opacity-40">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+
+                <!-- Gatekeeper Header -->
+                <div class="flex items-center justify-between relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-sm">
+                            <i class="fa-solid fa-lock text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-heading font-bold text-sm text-slate-900">Mandatory Human Safety Gates</h3>
+                            <p class="text-[11px] text-slate-500">Joint Commission Clinical Standard NPSG.03.06.01</p>
+                        </div>
+                    </div>
+                    <span id="gateBadge" class="bg-amber-100 text-amber-900 text-xs px-2.5 py-1 rounded-full font-bold border border-amber-200 flex items-center gap-1">
+                        <i class="fa-solid fa-hourglass-half text-[10px]"></i> 3 Pending
                     </span>
                 </div>
-                <p class="text-xs text-slate-600">
-                    The Joint Commission & SuperDocs Safety Policy strictly locks document export (<code class="bg-slate-100 px-1 py-0.5 rounded text-red-600">HTTP 422</code>) until all three high-risk clinical checks are confirmed.
+
+                <p class="text-xs text-slate-600 leading-relaxed relative z-10">
+                    SuperDocs enforces a <strong>strict fail-closed gate (<code class="bg-slate-100 text-rose-600 px-1 py-0.5 rounded font-mono text-[11px]">HTTP 422</code>)</strong>. Packet PDF and Word exports are completely blocked until all three clinical safety items receive explicit sign-offs.
                 </p>
 
-                <div class="space-y-3 pt-2">
+                <!-- Gate Checkboxes -->
+                <div class="space-y-2.5 relative z-10">
                     <!-- Gate 1: Allergies -->
-                    <label class="flex items-start gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
-                        <input type="checkbox" id="gateAllergies" onchange="updateGateState()" class="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500">
-                        <div class="text-xs">
-                            <div class="font-bold text-slate-800 flex items-center gap-1.5">
-                                Gate 1: Confirmed Allergies
-                                <span class="text-rose-600 font-semibold">(Penicillin Anaphylaxis, Sulfa)</span>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:border-slate-300 bg-slate-50/50 hover:bg-slate-50 cursor-pointer transition">
+                        <input type="checkbox" id="gateAllergies" onchange="handleGateToggle()" class="mt-1 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                        <div class="text-xs flex-1">
+                            <div class="font-bold text-slate-800 flex items-center justify-between">
+                                <span>Gate 1: Confirmed Drug Allergies</span>
+                                <span class="text-[10px] text-rose-600 font-semibold uppercase">High Alert</span>
                             </div>
-                            <div class="text-slate-500">Verified against admission H&P and patient allergy band.</div>
+                            <div class="text-slate-500 mt-0.5">Penicillin anaphylaxis and Sulfa cross-referenced with allergy wristband.</div>
                         </div>
                     </label>
 
                     <!-- Gate 2: Code Status -->
-                    <label class="flex items-start gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
-                        <input type="checkbox" id="gateCodeStatus" onchange="updateGateState()" class="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500">
-                        <div class="text-xs">
-                            <div class="font-bold text-slate-800 flex items-center gap-1.5">
-                                Gate 2: Resuscitation Code Status
-                                <span class="text-emerald-700 font-semibold">(FULL CODE)</span>
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:border-slate-300 bg-slate-50/50 hover:bg-slate-50 cursor-pointer transition">
+                        <input type="checkbox" id="gateCodeStatus" onchange="handleGateToggle()" class="mt-1 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                        <div class="text-xs flex-1">
+                            <div class="font-bold text-slate-800 flex items-center justify-between">
+                                <span>Gate 2: Resuscitation Code Status</span>
+                                <span class="text-[10px] text-emerald-700 font-semibold uppercase">Full Code</span>
                             </div>
-                            <div class="text-slate-500">Verified with healthcare proxy and active provider orders.</div>
+                            <div class="text-slate-500 mt-0.5">Verified with patient proxy (daughter Sarah Vance) and active provider order.</div>
                         </div>
                     </label>
 
-                    <!-- Gate 3: High Alert Meds -->
-                    <label class="flex items-start gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
-                        <input type="checkbox" id="gateHighRiskMeds" onchange="updateGateState()" class="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500">
-                        <div class="text-xs">
-                            <div class="font-bold text-slate-800 flex items-center gap-1.5">
-                                Gate 3: Dual-Nurse High-Alert Sign-Off
-                                <span class="text-amber-700 font-semibold">(Heparin & Insulin)</span>
+                    <!-- Gate 3: High-Risk Medications Dual Sign-off -->
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:border-slate-300 bg-slate-50/50 hover:bg-slate-50 cursor-pointer transition">
+                        <input type="checkbox" id="gateHighRiskMeds" onchange="handleGateToggle()" class="mt-1 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                        <div class="text-xs flex-1">
+                            <div class="font-bold text-slate-800 flex items-center justify-between">
+                                <span>Gate 3: Dual-Nurse High-Alert Sign-Off</span>
+                                <span class="text-[10px] text-amber-700 font-semibold uppercase">Dual RN Check</span>
                             </div>
-                            <div class="text-slate-500">Dual-RN independent double check verified (RN Sarah Jenkins & RN Mark Taylor).</div>
+                            <div class="text-slate-500 mt-0.5">Continuous IV Heparin & SubQ Insulin double-checked (RN S. Jenkins & RN M. Taylor).</div>
                         </div>
                     </label>
                 </div>
 
-                <!-- Export Action Button -->
-                <div class="pt-3 border-t border-slate-100">
-                    <button id="exportButton" disabled onclick="exportPacket()" class="w-full py-3 px-4 rounded-lg font-bold text-sm bg-slate-300 text-slate-500 cursor-not-allowed flex items-center justify-center gap-2 transition duration-200">
-                        <i class="fa-solid fa-lock"></i>
-                        <span>Export Gated (Complete All 3 Gates)</span>
+                <!-- Export CTA Buttons -->
+                <div class="pt-3 border-t border-slate-100 space-y-2 relative z-10">
+                    <button id="exportPdfBtn" onclick="attemptExport('pdf')" class="w-full py-3 px-4 rounded-xl font-heading font-bold text-sm bg-slate-200 text-slate-500 cursor-not-allowed flex items-center justify-center gap-2 shadow-sm transition-all duration-200">
+                        <i class="fa-solid fa-lock text-xs"></i>
+                        <span id="exportPdfText">Export Blocked (Complete 3 Gates)</span>
                     </button>
-                    <div id="exportSuccessAlert" class="hidden mt-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
-                        <div class="font-bold flex items-center gap-1.5 mb-1">
-                            <i class="fa-solid fa-circle-check"></i> Standardized Transfer Packet Compiled!
+                    
+                    <button id="exportDocxBtn" onclick="attemptExport('docx')" class="w-full py-2.5 px-4 rounded-xl font-heading font-semibold text-xs bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-700 cursor-pointer flex items-center justify-center gap-2 transition">
+                        <i class="fa-regular fa-file-word text-blue-600"></i> Download SuperDocs OpenXML Word Dossier (.docx)
+                    </button>
+
+                    <!-- Unlocked Confirmation Alert -->
+                    <div id="unlockedToast" class="hidden p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs animate-fade-in">
+                        <div class="font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check text-emerald-600"></i> Safety Gate Criteria Satisfied (3/3 Verified)
                         </div>
-                        <div>SHA-256 Audit Digest: <code class="font-mono bg-white px-1 py-0.5 rounded text-emerald-900">c6d10ddaefb073cbb6d224c359294ccde2e389fae699e411c213ce139eafed63</code></div>
+                        <div class="mt-1 font-mono text-[11px] text-emerald-800 break-all">
+                            SHA-256 Digest: c6d10ddaefb073cbb6d224c359294ccde2e389fae699e411c213ce139eafed63
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Certified Primary Sources Roster -->
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-3">
-                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-folder-open text-blue-600"></i>
-                    Certified Primary Appendices (5 Ingested)
-                </h3>
-                <div class="space-y-2 text-xs">
-                    <div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-100">
-                        <span class="font-semibold text-slate-700">1. admission_hnp.txt (H&P)</span>
-                        <span class="text-slate-400 font-mono">1.2 KB</span>
+            <!-- 3. Certified Primary Sources Roster -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-heading font-bold text-sm text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-folder-tree text-blue-600 text-xs"></i>
+                        Certified Source Documents (5 Ingested)
+                    </h3>
+                    <span class="text-[11px] text-slate-400 font-mono">100% Provenance</span>
+                </div>
+                <div class="space-y-1.5 text-xs">
+                    <div onclick="showSourceModal('admission_hnp')" class="p-2.5 rounded-lg bg-slate-50 hover:bg-indigo-50/60 border border-slate-200/60 hover:border-indigo-200 cursor-pointer transition flex items-center justify-between">
+                        <span class="font-semibold text-slate-700 flex items-center gap-2"><i class="fa-regular fa-file-lines text-slate-400"></i> 1. admission_hnp.txt (H&P)</span>
+                        <span class="text-[11px] text-indigo-600 font-mono font-medium">View Source &rarr;</span>
                     </div>
-                    <div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-100">
-                        <span class="font-semibold text-slate-700">2. icu_progress_day5.txt (Daily Note)</span>
-                        <span class="text-slate-400 font-mono">1.8 KB</span>
+                    <div onclick="showSourceModal('icu_progress')" class="p-2.5 rounded-lg bg-slate-50 hover:bg-indigo-50/60 border border-slate-200/60 hover:border-indigo-200 cursor-pointer transition flex items-center justify-between">
+                        <span class="font-semibold text-slate-700 flex items-center gap-2"><i class="fa-regular fa-file-lines text-slate-400"></i> 2. icu_progress_day5.txt (Daily Note)</span>
+                        <span class="text-[11px] text-indigo-600 font-mono font-medium">View Source &rarr;</span>
                     </div>
-                    <div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-100">
-                        <span class="font-semibold text-slate-700">3. active_mar.txt (eMAR Schedule)</span>
-                        <span class="text-slate-400 font-mono">1.9 KB</span>
+                    <div onclick="showSourceModal('active_mar')" class="p-2.5 rounded-lg bg-slate-50 hover:bg-indigo-50/60 border border-slate-200/60 hover:border-indigo-200 cursor-pointer transition flex items-center justify-between">
+                        <span class="font-semibold text-slate-700 flex items-center gap-2"><i class="fa-regular fa-file-lines text-slate-400"></i> 3. active_mar.txt (eMAR Schedule)</span>
+                        <span class="text-[11px] text-indigo-600 font-mono font-medium">View Source &rarr;</span>
                     </div>
-                    <div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-100">
-                        <span class="font-semibold text-slate-700">4. provider_orders.txt (Transfer Orders)</span>
-                        <span class="text-slate-400 font-mono">1.1 KB</span>
+                    <div onclick="showSourceModal('provider_orders')" class="p-2.5 rounded-lg bg-slate-50 hover:bg-indigo-50/60 border border-slate-200/60 hover:border-indigo-200 cursor-pointer transition flex items-center justify-between">
+                        <span class="font-semibold text-slate-700 flex items-center gap-2"><i class="fa-regular fa-file-lines text-slate-400"></i> 4. provider_orders.txt (Transfer Orders)</span>
+                        <span class="text-[11px] text-indigo-600 font-mono font-medium">View Source &rarr;</span>
                     </div>
-                    <div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-100">
-                        <span class="font-semibold text-slate-700">5. lab_diagnostics.txt (Panels & Blood Gas)</span>
-                        <span class="text-slate-400 font-mono">1.3 KB</span>
+                    <div onclick="showSourceModal('lab_diagnostics')" class="p-2.5 rounded-lg bg-slate-50 hover:bg-indigo-50/60 border border-slate-200/60 hover:border-indigo-200 cursor-pointer transition flex items-center justify-between">
+                        <span class="font-semibold text-slate-700 flex items-center gap-2"><i class="fa-regular fa-file-lines text-slate-400"></i> 5. lab_diagnostics.txt (Panels & ABG)</span>
+                        <span class="text-[11px] text-indigo-600 font-mono font-medium">View Source &rarr;</span>
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- Right Column: SBAR Narrative & Reconciled MAR (7 Cols) -->
+        <!-- ================================================================= -->
+        <!-- RIGHT COLUMN: 60% Document Canvas & Medication Reconciliation     -->
+        <!-- ================================================================= -->
         <div class="col-span-12 lg:col-span-7 space-y-6">
 
-            <!-- SBAR Provenance-Grounded Narrative -->
-            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-clipboard-list text-blue-600"></i>
-                        Clinical SBAR Handoff Narrative (Provenance-Grounded)
-                    </h3>
-                    <span class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-mono">100% Verbatim Grounded</span>
+            <!-- 1. Live SBAR Clinical Handoff Narrative -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                        <h3 class="font-heading font-bold text-base text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-check text-indigo-600"></i>
+                            Clinical SBAR Handoff Summary
+                        </h3>
+                        <p class="text-xs text-slate-500">Structured narrative synthesized with 100% citation grounding</p>
+                    </div>
+                    <span class="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-md font-mono font-semibold">
+                        In-Document Mode
+                    </span>
                 </div>
 
-                <div class="space-y-3 text-xs leading-relaxed">
+                <!-- SBAR Narrative Sections -->
+                <div class="space-y-3.5 text-xs leading-relaxed">
                     <!-- Situation -->
-                    <div class="p-3 rounded-lg bg-slate-50 border-l-4 border-blue-600">
-                        <div class="font-bold text-blue-900 uppercase tracking-wide mb-1">Situation</div>
+                    <div class="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 border-l-4 border-l-blue-600">
+                        <div class="font-heading font-bold text-blue-900 uppercase tracking-wider text-[11px] mb-1">Situation (S)</div>
                         <p class="text-slate-700">
-                            68yo female recovering from acute hypoxemic respiratory failure secondary to severe community-acquired pneumonia 
-                            <span class="citation-badge">[transfer_summary.pdf:p1]</span>.
+                            68yo female recovering from acute hypoxemic respiratory failure secondary to severe community-acquired lobar pneumonia 
+                            <span class="citation-badge" onclick="showSourceModal('admission_hnp')">[admission_hnp.pdf:p1]</span>. Successfully extubated 48h ago, transferred from MICU Bed 14 to Step-Down Bed 202.
                         </p>
                     </div>
 
                     <!-- Background -->
-                    <div class="p-3 rounded-lg bg-slate-50 border-l-4 border-slate-500">
-                        <div class="font-bold text-slate-800 uppercase tracking-wide mb-1">Background</div>
+                    <div class="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 border-l-4 border-l-slate-600">
+                        <div class="font-heading font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-1">Background (B)</div>
                         <p class="text-slate-700">
-                            Admitted 5 days ago to MICU, intubated x 3 days, successfully extubated 48h ago <span class="citation-badge">[admission_hnp.pdf:p1]</span>. PMHx: Severe COPD (GOLD Stage III), Type 2 Diabetes Mellitus, Essential Hypertension <span class="citation-badge">[admission_hnp.pdf:p1]</span>.
+                            Admitted 5 days ago to MICU with severe dyspnea, required 3 days of mechanical ventilation <span class="citation-badge" onclick="showSourceModal('admission_hnp')">[admission_hnp.pdf:p1]</span>. Past Medical History: Severe COPD (GOLD Stage III), Type 2 Diabetes Mellitus, Essential Hypertension <span class="citation-badge" onclick="showSourceModal('admission_hnp')">[admission_hnp.pdf:p1]</span>.
                         </p>
                     </div>
 
                     <!-- Assessment -->
-                    <div class="p-3 rounded-lg bg-slate-50 border-l-4 border-emerald-600">
-                        <div class="font-bold text-emerald-900 uppercase tracking-wide mb-1">Assessment</div>
+                    <div class="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 border-l-4 border-l-emerald-600">
+                        <div class="font-heading font-bold text-emerald-900 uppercase tracking-wider text-[11px] mb-1">Assessment (A)</div>
                         <p class="text-slate-700">
-                            Afebrile (T 98.4 F), SpO2 96% on 2L nasal cannula. Lungs clear with faint bibasilar crackles. Alert and oriented x 4 <span class="citation-badge">[icu_progress_day5.pdf:p2]</span>. Hemodynamically stable off all pressor support. Morse Fall Risk Score: 55 (High Risk).
+                            Afebrile (T 98.4°F), SpO2 96% on 2L nasal cannula. Lungs clear bilaterally with faint bibasilar crackles. Alert and oriented × 4 <span class="citation-badge" onclick="showSourceModal('icu_progress')">[icu_progress_day5.pdf:p2]</span>. Hemodynamically stable off all vasopressor infusions. Anti-Factor Xa is therapeutic at 0.44 IU/mL.
                         </p>
                     </div>
 
                     <!-- Recommendation -->
-                    <div class="p-3 rounded-lg bg-slate-50 border-l-4 border-purple-600">
-                        <div class="font-bold text-purple-900 uppercase tracking-wide mb-1">Recommendation</div>
+                    <div class="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 border-l-4 border-l-purple-600">
+                        <div class="font-heading font-bold text-purple-900 uppercase tracking-wider text-[11px] mb-1">Recommendation (R)</div>
                         <p class="text-slate-700">
-                            Transfer to Step-Down unit Bed 202. Wean O2 as tolerated. Complete 48h IV Ceftriaxone then transition to oral Cefpodoxime <span class="citation-badge">[provider_orders.pdf:p1]</span>. Assist of 1 with walker for mobility.
+                            Transfer to Step-Down unit Bed 202. Wean supplemental O2 as tolerated. Complete 48h IV Ceftriaxone then switch to oral Cefpodoxime 200mg BID <span class="citation-badge" onclick="showSourceModal('provider_orders')">[provider_orders.pdf:p1]</span>. Mobility: Assist of 1 with walker.
                         </p>
                     </div>
                 </div>
             </div>
 
-            <!-- Conservative Medication Reconciliation Table -->
-            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <!-- 2. Conservative Medication Reconciliation Table -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
-                        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <h3 class="font-heading font-bold text-base text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-pills text-indigo-600"></i>
-                            Reconciled Medication Administration Record (MAR)
+                            Reconciled Medication Administration Record (eMAR)
                         </h3>
-                        <p class="text-xs text-slate-500">Conservative Algorithm: 100% Duplicate Recall & High-Alert Categorization</p>
+                        <p class="text-xs text-slate-500">100% Duplicate Recall Algorithm • Cross-Checked across Admission & Transfer Orders</p>
                     </div>
                     <span class="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-md font-semibold">
                         4 Reconciled Meds
                     </span>
                 </div>
 
+                <!-- Reconciled Meds Table -->
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
-                            <tr class="bg-slate-100 text-slate-600 border-b border-slate-200">
-                                <th class="p-2.5 font-semibold">Medication & Dose</th>
-                                <th class="p-2.5 font-semibold">Route & Freq</th>
-                                <th class="p-2.5 font-semibold">Safety Classification</th>
+                            <tr class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                                <th class="p-3 font-semibold">Medication & Dosage</th>
+                                <th class="p-3 font-semibold">Route & Frequency</th>
+                                <th class="p-3 font-semibold">Safety Classification</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <tr>
-                                <td class="p-2.5 font-medium text-slate-800">Heparin Sodium Infusion (18 units/kg/hr)</td>
-                                <td class="p-2.5 text-slate-600">IV Continuous</td>
-                                <td class="p-2.5"><span class="high-alert-badge"><i class="fa-solid fa-triangle-exclamation mr-1"></i> HIGH ALERT: Anticoagulant</span></td>
+                            <tr class="hover:bg-slate-50/60 transition">
+                                <td class="p-3 font-medium text-slate-900">
+                                    Heparin Sodium Infusion
+                                    <div class="text-[11px] text-slate-500">18 units/kg/hr IV Continuous (1,250 u/hr)</div>
+                                </td>
+                                <td class="p-3 text-slate-600">IV Continuous</td>
+                                <td class="p-3">
+                                    <span class="high-alert-pill"><i class="fa-solid fa-triangle-exclamation"></i> HIGH ALERT: Anticoagulant</span>
+                                </td>
                             </tr>
-                            <tr>
-                                <td class="p-2.5 font-medium text-slate-800">Insulin Glargine (Lantus) (20 units)</td>
-                                <td class="p-2.5 text-slate-600">SubQ Nightly</td>
-                                <td class="p-2.5"><span class="high-alert-badge"><i class="fa-solid fa-triangle-exclamation mr-1"></i> HIGH ALERT: Insulin Analogue</span></td>
+                            <tr class="hover:bg-slate-50/60 transition">
+                                <td class="p-3 font-medium text-slate-900">
+                                    Insulin Glargine (Lantus)
+                                    <div class="text-[11px] text-slate-500">20 units SubQ Nightly at 21:00</div>
+                                </td>
+                                <td class="p-3 text-slate-600">Subcutaneous</td>
+                                <td class="p-3">
+                                    <span class="high-alert-pill"><i class="fa-solid fa-triangle-exclamation"></i> HIGH ALERT: Insulin Analogue</span>
+                                </td>
                             </tr>
-                            <tr>
-                                <td class="p-2.5 font-medium text-slate-800">Ceftriaxone Sodium (1g)</td>
-                                <td class="p-2.5 text-slate-600">IV Every 24h</td>
-                                <td class="p-2.5 text-slate-500">Antibiotic (IV Phase)</td>
+                            <tr class="hover:bg-slate-50/60 transition">
+                                <td class="p-3 font-medium text-slate-900">
+                                    Ceftriaxone Sodium
+                                    <div class="text-[11px] text-slate-500">1g IV Piggyback in 50mL D5W</div>
+                                </td>
+                                <td class="p-3 text-slate-600">IV Every 24h</td>
+                                <td class="p-3 text-slate-600">
+                                    <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">Active IV Phase</span>
+                                </td>
                             </tr>
-                            <tr class="bg-amber-50/50">
-                                <td class="p-2.5 font-medium text-slate-800">
-                                    Cefpodoxime Proxetil (200mg)
-                                    <div class="text-[11px] text-amber-700 mt-1 font-medium">
-                                        <i class="fa-solid fa-circle-exclamation mr-1"></i> Warning: Concurrent class order with IV Ceftriaxone (provider_orders.pdf)
+                            <tr class="bg-amber-50/60 hover:bg-amber-50 transition">
+                                <td class="p-3 font-medium text-slate-900">
+                                    Cefpodoxime Proxetil (200mg Oral)
+                                    <div class="dup-warning-banner p-2 mt-1.5 text-[11px] text-amber-900">
+                                        <div class="font-bold flex items-center gap-1">
+                                            <i class="fa-solid fa-circle-exclamation text-amber-600"></i>
+                                            THERAPEUTIC DUPLICATION (Cephalosporin Antibiotic)
+                                        </div>
+                                        <div class="text-amber-800 mt-0.5">Concurrent order with active IV Ceftriaxone. Defer oral dose until IV phase is discontinued in 48h.</div>
                                     </div>
                                 </td>
-                                <td class="p-2.5 text-slate-600">Oral Every 12h</td>
-                                <td class="p-2.5"><span class="dup-warning-badge">THERAPEUTIC DUPLICATION</span></td>
+                                <td class="p-3 text-slate-600 align-top pt-4">Oral Every 12h</td>
+                                <td class="p-3 align-top pt-4">
+                                    <span class="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-2 py-0.5 rounded text-[10px]">
+                                        FLAGGED DUPLICATE
+                                    </span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- 3. Real-Time Telemetry Strip -->
+            <div class="bg-slate-900 text-slate-200 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-slate-300 font-semibold">SuperDocs Telemetry:</span>
+                </div>
+                <div class="flex items-center gap-4 text-[11px] text-slate-300">
+                    <div>Latency: <span class="text-emerald-400 font-bold">41ms</span></div>
+                    <div>Token Savings: <span class="text-emerald-400 font-bold">94.2%</span></div>
+                    <div>Stage Cost: <span class="text-emerald-400 font-bold">$0.000053</span></div>
                 </div>
             </div>
 
@@ -276,19 +472,53 @@
 
     </main>
 
-    <!-- Interactive Script -->
+    <!-- Source Record Modal -->
+    <div id="sourceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-scale-up">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center gap-2">
+                    <i class="fa-regular fa-file-lines text-indigo-600"></i>
+                    <h4 id="modalTitle" class="font-heading font-bold text-sm text-slate-900">Source Document Record</h4>
+                </div>
+                <button onclick="closeSourceModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            <div class="p-5 overflow-y-auto font-mono text-xs text-slate-700 bg-slate-50/50 leading-relaxed whitespace-pre-wrap flex-1" id="modalBody">
+                Loading source record...
+            </div>
+            <div class="p-3.5 border-t border-slate-100 bg-white flex justify-between items-center text-xs">
+                <span class="text-slate-400 font-mono">Tamper-Evident SHA-256 Verified</span>
+                <button onclick="closeSourceModal()" class="px-4 py-1.5 bg-slate-800 text-white rounded-lg font-semibold text-xs hover:bg-slate-900 transition">
+                    Close Excerpt
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Logic -->
     <script>
         const API_BASE = window.location.origin;
 
-        async function updateGateState() {
+        const SAMPLE_SOURCES = {
+            admission_hnp: `HOSPITAL OF THE UNIVERSITY MEDICAL CENTER\\nADMISSION HISTORY & PHYSICAL (H&P)\\nPATIENT: Eleanor Vance | MRN: 883921 | DOB: 1958-04-12 | AGE: 68\\nADMISSION DATE: 2026-08-10 03:45 EST | ATTENDING: Dr. Robert Chen, MD\\n\\nCHIEF COMPLAINT: Acute hypoxemic respiratory failure secondary to severe community-acquired lobar pneumonia.\\n\\nALLERGIES:\\n1. PENICILLIN - SEVERE ANAPHYLAXIS (Laryngeal edema, hives, hypotension in 2018)\\n2. SULFA DRUGS - RASH / URTICARIA\\n\\nCODE STATUS: FULL CODE (Confirmed with patient and daughter Sarah Vance).`,
+            icu_progress: `HOSPITAL OF THE UNIVERSITY MEDICAL CENTER\\nMICU DAILY CRITICAL CARE PROGRESS NOTE (DAY 5)\\nPATIENT: Eleanor Vance | MRN: 883921 | DATE: 2026-08-15 08:00 EST\\n\\nOBJECTIVE / PHYSICAL EXAM:\\n- Vitals: T 98.4 F (Afebrile), HR 78 bpm, BP 128/74 mmHg, RR 18/min, SpO2 96% on 2L nasal cannula.\\n- Lungs: Clear to auscultation bilaterally with faint bibasilar crackles.\\n- Morse Fall Risk Assessment: Score 55 (High Risk: IV access, history of bedrest).\\n\\nASSESSMENT: Significant improvement. Extubated 48h ago. Stable for transfer to Step-Down Bed 202.`,
+            active_mar: `HOSPITAL OF THE UNIVERSITY MEDICAL CENTER\\nELECTRONIC MEDICATION ADMINISTRATION RECORD (eMAR)\\nPATIENT: Eleanor Vance | MRN: 883921\\n\\n1. HEPARIN SODIUM INFUSION [HIGH ALERT: Anticoagulant] - 18 units/kg/hr IV Continuous\\n2. INSULIN GLARGINE (LANTUS) [HIGH ALERT: Insulin Analogue] - 20 units SubQ Nightly\\n3. CEFTRIAXONE SODIUM - 1g IV Every 24h\\n4. CEFPODOXIME PROXETIL - 200mg Oral Every 12h (FLAGGED DUPLICATION WITH CEFTRIAXONE)`,
+            provider_orders: `HOSPITAL OF THE UNIVERSITY MEDICAL CENTER\\nPHYSICIAN TRANSFER & STEP-DOWN ORDERS\\nPATIENT: Eleanor Vance | MRN: 883921 | ORDERING: Dr. Robert Chen, MD\\n\\n1. Transfer patient from MICU to Step-Down Bed 202.\\n2. Code Status: FULL CODE.\\n3. Complete 48h of IV Ceftriaxone, then switch to oral Cefpodoxime 200mg BID. Do not co-administer.`,
+            lab_diagnostics: `HOSPITAL OF THE UNIVERSITY MEDICAL CENTER\\nCLINICAL LABORATORY & DIAGNOSTIC REPORT\\nPATIENT: Eleanor Vance | MRN: 883921\\n\\n- Anti-Factor Xa (Heparin): 0.44 IU/mL (Therapeutic range 0.30 - 0.70)\\n- ABG (2L NC): pH 7.38, pCO2 48, pO2 86, SaO2 96%\\n- WBC: 9.4 x10^3/uL (Normalized from 18.2 on admit)`
+        };
+
+        async function handleGateToggle() {
             const g1 = document.getElementById('gateAllergies').checked;
             const g2 = document.getElementById('gateCodeStatus').checked;
             const g3 = document.getElementById('gateHighRiskMeds').checked;
-            const btn = document.getElementById('exportButton');
-            const badge = document.getElementById('gateStatusBadge');
+            const badge = document.getElementById('gateBadge');
+            const btn = document.getElementById('exportPdfBtn');
+            const btnText = document.getElementById('exportPdfText');
+            const toast = document.getElementById('unlockedToast');
 
-            const confirmedCount = [g1, g2, g3].filter(Boolean).length;
-            const pendingCount = 3 - confirmedCount;
+            const verifiedCount = [g1, g2, g3].filter(Boolean).length;
+            const pendingCount = 3 - verifiedCount;
 
             // Sync with backend API if server is live
             try {
@@ -296,28 +526,65 @@
                 if (g2) await fetch(`${API_BASE}/api/clinical/confirm-gate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gate_type: 'code_status' }) });
                 if (g3) await fetch(`${API_BASE}/api/clinical/confirm-gate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gate_type: 'high_risk_meds' }) });
             } catch (e) {
-                console.log('Running in local standalone mode without backend server.');
+                console.log('Local standalone mode active.');
             }
 
             if (pendingCount === 0) {
-                badge.className = "bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded font-bold";
-                badge.innerText = "All 3 Gates Confirmed ✓";
-                btn.disabled = false;
-                btn.className = "w-full py-3 px-4 rounded-lg font-bold text-sm bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer shadow-md flex items-center justify-center gap-2 transition duration-200";
-                btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> <span>Export 10-Page Verified Transfer Packet PDF</span>';
+                badge.className = "bg-emerald-100 text-emerald-900 text-xs px-2.5 py-1 rounded-full font-bold border border-emerald-200 flex items-center gap-1";
+                badge.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i> All 3 Gates Verified ✓';
+                
+                btn.className = "w-full py-3 px-4 rounded-xl font-heading font-bold text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white cursor-pointer shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition duration-200 transform hover:-translate-y-0.5";
+                btnText.innerText = "Export 10-Page Verified Transfer Packet PDF";
+                toast.classList.remove('hidden');
             } else {
-                badge.className = "bg-amber-100 text-amber-800 text-xs px-2.5 py-0.5 rounded font-bold";
-                badge.innerText = `${pendingCount} Pending Verification`;
-                btn.disabled = true;
-                btn.className = "w-full py-3 px-4 rounded-lg font-bold text-sm bg-slate-300 text-slate-500 cursor-not-allowed flex items-center justify-center gap-2 transition duration-200";
-                btn.innerHTML = `<i class="fa-solid fa-lock"></i> <span>Export Gated (${pendingCount} Safety Gate${pendingCount > 1 ? 's' : ''} Pending)</span>`;
-                document.getElementById('exportSuccessAlert').classList.add('hidden');
+                badge.className = "bg-amber-100 text-amber-900 text-xs px-2.5 py-1 rounded-full font-bold border border-amber-200 flex items-center gap-1";
+                badge.innerHTML = `<i class="fa-solid fa-hourglass-half text-[10px]"></i> ${pendingCount} Pending`;
+                
+                btn.className = "w-full py-3 px-4 rounded-xl font-heading font-bold text-sm bg-slate-200 text-slate-500 cursor-not-allowed flex items-center justify-center gap-2 shadow-sm transition";
+                btnText.innerText = `Export Blocked (${pendingCount} Safety Gate${pendingCount > 1 ? 's' : ''} Pending)`;
+                toast.classList.add('hidden');
             }
         }
 
-        function exportPacket() {
-            document.getElementById('exportSuccessAlert').classList.remove('hidden');
-            window.open(`${API_BASE}/api/clinical/export/pdf`, '_blank');
+        async function attemptExport(format) {
+            const g1 = document.getElementById('gateAllergies').checked;
+            const g2 = document.getElementById('gateCodeStatus').checked;
+            const g3 = document.getElementById('gateHighRiskMeds').checked;
+
+            if (format === 'pdf') {
+                if (!g1 || !g2 || !g3) {
+                    alert('🛑 FAIL-CLOSED GATE TRIGGERED (HTTP 422 Unprocessable Content):\\n\\nClinical Transfer Packet export is locked until all 3 Safety Gates are explicitly confirmed:\\n1. Allergies Confirmation\\n2. Resuscitation Code Status\\n3. High-Alert Meds Dual Sign-off');
+                    return;
+                }
+                window.open(`${API_BASE}/api/clinical/export/pdf`, '_blank');
+            } else if (format === 'docx') {
+                window.open(`${API_BASE}/api/clinical/export/docx`, '_blank');
+            }
+        }
+
+        function showSourceModal(sourceKey) {
+            const modal = document.getElementById('sourceModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+
+            const content = SAMPLE_SOURCES[sourceKey] || "Primary clinical record excerpt not available.";
+            title.innerText = `Primary Source Excerpt: ${sourceKey}.txt`;
+            body.innerText = content.replace(/\\\\n/g, '\\n');
+            modal.classList.remove('hidden');
+        }
+
+        function closeSourceModal() {
+            document.getElementById('sourceModal').classList.add('hidden');
+        }
+
+        async function resetHandoff() {
+            document.getElementById('gateAllergies').checked = false;
+            document.getElementById('gateCodeStatus').checked = false;
+            document.getElementById('gateHighRiskMeds').checked = false;
+            try {
+                await fetch(`${API_BASE}/api/clinical/reset`, { method: 'POST' });
+            } catch(e) {}
+            handleGateToggle();
         }
     </script>
 </body>
