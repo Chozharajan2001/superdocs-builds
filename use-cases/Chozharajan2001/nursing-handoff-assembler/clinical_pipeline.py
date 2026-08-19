@@ -249,6 +249,9 @@ class ClinicalPacketAssembler:
                 "code_status": self.gates.code_status_confirmed,
                 "high_risk_meds": self.gates.high_risk_meds_confirmed,
             },
-            "source_hashes": [d["hash"] for d in self.source_documents],
+            "source_hashes": [
+                hashlib.sha256(d.get("content", "").encode()).hexdigest()
+                for d in self.source_documents
+            ],
         }
         return hashlib.sha256(json.dumps(packet_payload, sort_keys=True).encode()).hexdigest()

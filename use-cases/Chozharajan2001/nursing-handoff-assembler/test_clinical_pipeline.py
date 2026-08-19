@@ -129,5 +129,50 @@ def test_deterministic_export_gating(assembler, tmp_path):
     assert digest1 == digest2
 
 
+def test_multi_family_duplicate_recall():
+    """Test duplicate detection across multiple pharmacological classes (NSAIDs, Statins, ACE/ARBs)."""
+    from clinical_pipeline import ConservativeMedReconciliationEngine
+    
+    test_meds = [
+        {"name": "Lipitor", "generic": "atorvastatin", "dose": "40mg", "route": "Oral"},
+        {"name": "Crestor", "generic": "rosuvastatin", "dose": "20mg", "route": "Oral"},
+        {"name": "Advil", "generic": "ibuprofen", "dose": "400mg", "route": "Oral"},
+        {"name": "Aleve", "generic": "naproxen", "dose": "220mg", "route": "Oral"},
+    ]
+    reconciled = ConservativeMedReconciliationEngine.reconcile(test_meds)
+    
+    # Check statin duplicate
+    rosuvastatin = next(m for m in reconciled if m.generic == "rosuvastatin")
+    assert rosuvastatin.is_duplicate is True
+    assert "Statin" in rosuvastatin.duplicate_warning
+
+    # Check NSAID duplicate
+    naproxen = next(m for m in reconciled if m.generic == "naproxen")
+    assert naproxen.is_duplicate is True
+    assert "Nsaid" in naproxen.duplicate_warning
+
+
+def test_tamper_evident_audit_digest_divergence(assembler):
+    """Test that modifying even 1 byte in a primary record changes the cryptographic audit hash."""
+    original_digest = assembler.generate_audit_digest()
+    
+    # Tamper with an appendix record
+    assembler.source_documents[0]["content"] += " [Tampered Alteration]"
+    tampered_digest = assembler.generate_audit_digest()
+    
+    assert original_digest != tampered_digest
+    assert len(tampered_digest) == 64
+
+
+def test_superdocs_client_graceful_offline_fallback():
+    """Test that SuperDocsAPIClient gracefully handles offline/mock fallback without crashing."""
+    from superdocs_client import SuperDocsAPIClient
+    
+    client = SuperDocsAPIClient(api_key="mock_invalid_test_key", base_url="https://invalid-host.mock")
+    resp = client.create_or_update_handoff_document("test_sess", "Test instruction")
+    assert "response" in resp
+    assert resp.get("offline_fallback") is True
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
