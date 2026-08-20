@@ -250,8 +250,8 @@ class ClinicalPacketAssembler:
                 "high_risk_meds": self.gates.high_risk_meds_confirmed,
             },
             "source_hashes": [
-                hashlib.sha256(d.get("content", "").encode()).hexdigest()
+                hashlib.sha256((d.get("content") or "").encode("utf-8")).hexdigest()
                 for d in self.source_documents
             ],
         }
-        return hashlib.sha256(json.dumps(packet_payload, sort_keys=True).encode()).hexdigest()
+        return hashlib.sha256(json.dumps(packet_payload, sort_keys=True, default=str).encode("utf-8")).hexdigest()
