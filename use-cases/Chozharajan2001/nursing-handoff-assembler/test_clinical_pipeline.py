@@ -65,6 +65,15 @@ def assembler():
     return inst
 
 
+def test_sbar_provenance_citations(assembler):
+    """Test that SBAR narrative fields carry verifiable [document:page] primary EHR citations."""
+    sbar = assembler.sbar
+    assert "[transfer_summary.pdf:p1]" in sbar.situation
+    assert "[admission_hnp.pdf:p1]" in sbar.background
+    assert "[icu_progress_day5.pdf:p2]" in sbar.assessment
+    assert "[provider_orders.pdf:p1]" in sbar.recommendation
+
+
 def test_conservative_medication_reconciliation(assembler):
     """Test that therapeutic overlap (Ceftriaxone vs Cefpodoxime) is flagged with 100% recall."""
     meds = assembler.medications
