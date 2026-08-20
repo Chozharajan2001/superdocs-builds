@@ -174,6 +174,37 @@ def reset_patient_state():
     return {"status": "reset", "patient": _ACTIVE_ASSEMBLER.demographics.mrn}
 
 
+@app.get("/api/clinical/gate-status")
+def get_gate_status():
+    """Returns current state of all 3 safety gates and whether export is unlocked."""
+    if not _ACTIVE_ASSEMBLER:
+        raise HTTPException(status_code=503, detail="No active assembler. Call /api/clinical/reset first.")
+    gates = _ACTIVE_ASSEMBLER.gates
+    unlocked, pending = gates.is_export_unlocked()
+    return {
+        "export_unlocked": unlocked,
+        "pending_gates": pending,
+        "gates": {
+            "allergies": {
+                "confirmed": gates.allergies_confirmed,
+                "nurse": gates.allergies_nurse,
+                "timestamp": gates.allergies_timestamp,
+            },
+            "code_status": {
+                "confirmed": gates.code_status_confirmed,
+                "nurse": gates.code_status_nurse,
+                "timestamp": gates.code_status_timestamp,
+            },
+            "high_risk_meds": {
+                "confirmed": gates.high_risk_meds_confirmed,
+                "nurse_1": gates.high_risk_meds_nurse_1,
+                "nurse_2": gates.high_risk_meds_nurse_2,
+                "timestamp": gates.high_risk_meds_timestamp,
+            },
+        },
+    }
+
+
 @app.get("/", response_class=HTMLResponse)
 @app.get("/dashboard", response_class=HTMLResponse)
 def get_dashboard():

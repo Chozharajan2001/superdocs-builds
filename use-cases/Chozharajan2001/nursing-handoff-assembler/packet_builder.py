@@ -4,8 +4,11 @@ Uses ReportLab to generate a multi-page clinical transfer dossier with fixed sec
 high-risk verification badges, reconciled MAR tables, appended clinical notes, and SHA-256 audit ledger.
 """
 import io
+import logging
 from pathlib import Path
 from typing import List, Optional
+
+logger = logging.getLogger(__name__)
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -385,7 +388,15 @@ class ClinicalPDFPacketBuilder:
         ]))
         story.append(t_audit)
 
-        doc.build(story)
+        try:
+            doc.build(story) # no canvasmaker passed in original, matching original args
+        except Exception as e:
+            logger.error("[PACKET_BUILDER] ReportLab PDF generation failed: %s", e, exc_info=True)
+            raise RuntimeError(
+                f"PDF generation failed at rendering stage: {type(e).__name__}: {e}. "
+                "Likely cause: malformed table data or unsupported character in clinical text. "
+                "Fix: sanitize Unicode characters in source documents or check table column widths."
+            ) from e
         return buffer.getvalue()
 
     def save_pdf(self, output_path: str) -> str:

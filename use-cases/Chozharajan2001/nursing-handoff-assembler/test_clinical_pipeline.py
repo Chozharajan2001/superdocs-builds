@@ -183,5 +183,46 @@ def test_superdocs_client_graceful_offline_fallback():
     assert resp.get("offline_fallback") is True
 
 
+def test_gate_confirmation_idempotency():
+    """Safety gate confirm methods must be idempotent: second call never overwrites first nurse identity."""
+    assembler = ClinicalPacketAssembler(
+        demographics=PATIENT_DEMOGRAPHICS if 'PATIENT_DEMOGRAPHICS' in globals() else PatientDemographics(
+            patient_id="test", name="test", mrn="test", dob="test", age=1, gender="F", admission_date="test",
+            sending_unit="test", receiving_unit="test", attending_physician="test", code_status="test"
+        ),
+    )
+    assembler.gates = SafetyGatekeeper()
+    assembler.set_medications([])
+
+    # First confirmation
+    assembler.confirm_allergy_gate(nurse_name="Alice Smith", nurse_id="RN001")
+    first_nurse = assembler.gates.allergies_nurse
+    first_ts = assembler.gates.allergies_timestamp
+
+    # Second confirmation with different nurse — must be ignored
+    assembler.confirm_allergy_gate(nurse_name="Bob Jones", nurse_id="RN999")
+    
+    assert assembler.gates.allergies_nurse == first_nurse, \
+        "Idempotency violated: second call overwrote first nurse identity"
+    assert assembler.gates.allergies_timestamp == first_ts, \
+        "Idempotency violated: timestamp was overwritten"
+
+
+def test_drug_matching_word_boundary():
+    """High-alert drug matching must use word boundaries — 'insulinoma' must NOT match 'insulin'."""
+    from clinical_pipeline import ConservativeMedReconciliationEngine
+    
+    false_positive_meds = [
+        {"name": "Insulinoma Research Drug", "generic": "insulinoma_compound", "dose": "10mg", "route": "PO", "frequency": "QD"},
+        {"name": "Heparinase Enzyme", "generic": "heparinase", "dose": "5mg", "route": "IV", "frequency": "QD"},
+    ]
+    reconciled = ConservativeMedReconciliationEngine.reconcile(false_positive_meds)
+    
+    for med in reconciled:
+        assert not med.is_high_risk, (
+            f"False positive: '{med.name}' (generic: '{med.generic}') was incorrectly tagged as high-alert. "
+            "Drug matching must use word boundaries."
+        )
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
