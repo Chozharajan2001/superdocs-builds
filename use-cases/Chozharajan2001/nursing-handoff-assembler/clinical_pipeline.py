@@ -218,16 +218,23 @@ class ClinicalPacketAssembler:
         })
 
     def confirm_allergy_gate(self, nurse_name: str, nurse_id: str):
+        if self.gates.allergies_confirmed:
+            # Idempotent: first confirmed identity is the authority — silent re-call is a no-op
+            return
         self.gates.allergies_confirmed = True
         self.gates.allergies_nurse = f"{nurse_name} ({nurse_id})"
         self.gates.allergies_timestamp = datetime.now(timezone.utc).isoformat()
 
     def confirm_code_status_gate(self, nurse_name: str, nurse_id: str):
+        if self.gates.code_status_confirmed:
+            return
         self.gates.code_status_confirmed = True
         self.gates.code_status_nurse = f"{nurse_name} ({nurse_id})"
         self.gates.code_status_timestamp = datetime.now(timezone.utc).isoformat()
 
     def confirm_high_risk_meds_gate(self, nurse_1: str, id_1: str, nurse_2: str, id_2: str):
+        if self.gates.high_risk_meds_confirmed:
+            return
         self.gates.high_risk_meds_confirmed = True
         self.gates.high_risk_meds_nurse_1 = f"{nurse_1} ({id_1})"
         self.gates.high_risk_meds_nurse_2 = f"{nurse_2} ({id_2})"
