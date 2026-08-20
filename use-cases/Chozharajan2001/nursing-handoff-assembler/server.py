@@ -290,6 +290,20 @@ def export_pdf_dossier():
 
 @app.get("/api/clinical/export/docx")
 def export_docx_dossier():
+    if not _ACTIVE_ASSEMBLER:
+        raise HTTPException(status_code=500, detail="Assembler uninitialized.")
+
+    unlocked, unverified = _ACTIVE_ASSEMBLER.gates.is_export_unlocked()
+    if not unlocked:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "error": "EXPORT_BLOCKED_SAFETY_GATES_PENDING",
+                "message": "Deterministic safety gate violation: Clinical transfer packet Word export is locked until all 3 high-risk fields are verified.",
+                "pending_gates": unverified,
+            }
+        )
+
     docx_file = CURRENT_DIR / f"superdocs_handoff_{_ACTIVE_ASSEMBLER.demographics.mrn}.docx"
     if docx_file.exists():
         return FileResponse(
