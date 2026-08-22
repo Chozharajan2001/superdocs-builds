@@ -29,16 +29,59 @@ from clinical_pipeline import (
 )
 from packet_builder import ClinicalPDFPacketBuilder
 from superdocs_client import SuperDocsAPIClient
+import state_persistence
 
 from contextlib import asynccontextmanager
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("superdocs.clinical_server")
 
+CURRENT_DIR = Path(__file__).parent.resolve()
+SAMPLE_DIR = CURRENT_DIR / "sample_patient_records"
+
+# Durable gate-state persistence (LIMITATIONS §3 remediation): confirmations now
+# survive server restarts via a local SQLite row instead of process memory.
+STATE_DB = CURRENT_DIR / "clinical_gate_state.db"
+STATE_ID = "active-assembler"
+
+# In-Memory Active Assembler State (rehydrated from STATE_DB on startup)
+_ACTIVE_ASSEMBLER: Optional[ClinicalPacketAssembler] = None
+
+
+def _persist_state() -> None:
+    """Write the current assembler state (packet + gates) to the durable store."""
+    if _ACTIVE_ASSEMBLER is None:
+        return
+    try:
+        state_persistence.save_state(
+            STATE_DB, STATE_ID, state_persistence.serialize_assembler(_ACTIVE_ASSEMBLER)
+        )
+    except Exception as exc:  # persistence must never break the clinical flow
+        logger.warning("Gate-state persistence failed (state kept in memory only): %s", exc)
+
+
+def _load_or_seed_assembler() -> ClinicalPacketAssembler:
+    """Rehydrate persisted state (gates survive restart) or seed the default packet."""
+    raw = state_persistence.load_state(STATE_DB, STATE_ID)
+    if raw is not None:
+        try:
+            restored = state_persistence.restore_assembler(raw)
+            logger.info("Restored persisted clinical state from %s (gates preserved)", STATE_DB.name)
+            return restored
+        except Exception as exc:
+            logger.warning("Persisted clinical state unreadable (%s); reseeding defaults", exc)
+    inst = init_default_assembler()
+    try:
+        state_persistence.save_state(STATE_DB, STATE_ID, state_persistence.serialize_assembler(inst))
+    except Exception as exc:
+        logger.warning("Initial state persistence failed: %s", exc)
+    return inst
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _ACTIVE_ASSEMBLER
-    _ACTIVE_ASSEMBLER = init_default_assembler()
+    _ACTIVE_ASSEMBLER = _load_or_seed_assembler()
     logger.info("Clinical Nursing Handoff Server initialized for patient MRN %s", _ACTIVE_ASSEMBLER.demographics.mrn)
     yield
 
@@ -56,12 +99,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-CURRENT_DIR = Path(__file__).parent.resolve()
-SAMPLE_DIR = CURRENT_DIR / "sample_patient_records"
-
-# In-Memory Active Assembler State
-_ACTIVE_ASSEMBLER: Optional[ClinicalPacketAssembler] = None
 
 
 def init_default_assembler() -> ClinicalPacketAssembler:
@@ -171,6 +208,7 @@ def health_check():
 def reset_patient_state():
     global _ACTIVE_ASSEMBLER
     _ACTIVE_ASSEMBLER = init_default_assembler()
+    _persist_state()  # the reset itself is durable: a restart sees pristine gates
     return {"status": "reset", "patient": _ACTIVE_ASSEMBLER.demographics.mrn}
 
 
@@ -281,6 +319,10 @@ def confirm_safety_gate(req: GateConfirmationRequest):
         )
     else:
         raise HTTPException(status_code=400, detail=f"Unknown gate type: {req.gate_type}")
+
+    # Durability: the confirmation is written to SQLite BEFORE responding, so a
+    # crash or restart immediately after this call never loses a nurse sign-off.
+    _persist_state()
 
     unlocked, pending = _ACTIVE_ASSEMBLER.gates.is_export_unlocked()
     return {

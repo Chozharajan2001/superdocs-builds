@@ -208,6 +208,63 @@ def test_gate_confirmation_idempotency():
         "Idempotency violated: timestamp was overwritten"
 
 
+def test_gate_state_survives_restart(tmp_path):
+    """LIMITATIONS §3 remediation proof: gate confirmations survive a server restart.
+
+    The full assembler state (packet + gates) is serialized to durable SQLite,
+    then rehydrated into a fresh assembler instance (simulating a process
+    restart). The restored gates must carry the exact first-nurse attributions.
+    """
+    from state_persistence import (
+        load_state,
+        restore_assembler,
+        save_state,
+        serialize_assembler,
+    )
+
+    demo = PatientDemographics(
+        patient_id="patient-883921",
+        name="Eleanor Vance",
+        mrn="883921",
+        dob="1958-04-12",
+        age=68,
+        gender="Female",
+        admission_date="2026-08-10",
+        sending_unit="Medical ICU (Bed 14)",
+        receiving_unit="Step-Down Unit (Bed 202)",
+        attending_physician="Dr. Robert Chen, MD",
+        code_status="FULL CODE",
+    )
+    inst = ClinicalPacketAssembler(demographics=demo)
+    inst.set_allergies(["Penicillin (Anaphylaxis)"])
+    inst.set_medications([
+        {"name": "Heparin Sodium Infusion", "generic": "heparin", "dose": "18 units/kg/hr IV", "route": "IV Continuous"},
+    ])
+    inst.confirm_allergy_gate("RN Sarah Jenkins", "RN-4029")
+
+    # Persist, then rehydrate into a brand-new instance (simulated restart)
+    db_path = tmp_path / "clinical_gate_state.db"
+    save_state(db_path, "active-assembler", serialize_assembler(inst))
+    raw = load_state(db_path, "active-assembler")
+    assert raw is not None, "State was not persisted to the durable store"
+
+    revived = restore_assembler(raw)
+
+    # Gates survive the restart with the exact first-nurse attribution
+    assert revived.gates.allergies_confirmed is True
+    assert revived.gates.allergies_nurse == "RN Sarah Jenkins (RN-4029)"
+    assert revived.gates.code_status_confirmed is False
+
+    # Packet content survives too (nothing silently dropped)
+    assert revived.demographics.mrn == "883921"
+    assert revived.allergies == ["Penicillin (Anaphylaxis)"]
+    assert len(revived.medications) == 1
+    assert revived.medications[0].is_high_risk is True
+
+    # The audit digest is stable across the restart (same verified facts)
+    assert revived.generate_audit_digest() == inst.generate_audit_digest()
+
+
 def test_drug_matching_word_boundary():
     """High-alert drug matching must use word boundaries — 'insulinoma' must NOT match 'insulin'."""
     from clinical_pipeline import ConservativeMedReconciliationEngine
